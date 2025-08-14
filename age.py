@@ -226,7 +226,7 @@ class Age(plugins.Plugin):
 
         if self.show_personality:
             ui.add_element('Personality', LabeledValue(
-                color=BLACK, label='Trait', value="Neutral",
+                color=BLACK, label='Trait ', value="Neutral",
                 position=positions['personality'], label_font=fonts.Bold, text_font=fonts.Medium))
 
     def on_ui_update(self, ui):
