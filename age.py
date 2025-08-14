@@ -21,28 +21,53 @@ class Age(plugins.Plugin):
                        'UI is optimized to avoid clutter.')
 
     DEFAULT_AGE_TITLES = {
-        100: "Baby Steps",
-        500: "Getting the Hang of It",
-        1000: "Neon Spawn",
-        2000: "Script Kiddie",
-        5000: "WiFi Outlaw",
-        10000: "Data Raider",
-        25000: "Prophet",
-        33333: "Off the Grid",
-        55555: "Multiversed",
-        111111: "Intergalactic"
-    }
+        100: "Cosmic Hatchling",
+        200: "Byte Starling",
+        275: "Signal Spark",
+        350: "Signal Seeker",
+        450: "Ping Nomad",
+        600: "Packet Voyager",
+        750: "Orbitling",
+        900: "Neural Apprentice",
+        1_050: "Pulse Pioneer",
+        1_200: "Quantum Wanderer",
+        1_350: "Script Satellite",
+        1_500: "Code Comet",
+        2_000: "Wavelength Nomad",
+        3_000: "Protocol Pioneer",
+        4_000: "Data Asteroid",
+        5_000: "Stellar Coder",
+        7_000: "Encrypted Voyager",
+        10_000: "WiFi Starborn",
+        15_000: "Nebula Navigator",
+        20_000: "Celestial Hacker",
+        30_000: "Ethernaut",
+        40_000: "Binary Constellation",
+        55_000: "Quantum Overlord",
+        80_000: "Dark Matter Diver",
+        100_000: "Galactic Root",
+        111_111: "Singularity Sentinel"
+        }
 
     DEFAULT_STRENGTH_TITLES = {
-        100: "Sparring Novice",
-        300: "Gear Tickler",
-        500: "Fleshbag",
-        1500: "Lightweight",
-        2000: "Deauth King",
-        2500: "Handshake Hunter",
-        3333: "Unstoppable",
-        55555: "Rev-9",
-        111111: "Kuato"
+        100: "Circuit Initiate",
+        250: "Pulse Drifter",
+        400: "Bitbreaker",
+        600: "Packet Slinger",
+        900: "Firewall Skipper",
+        1_200: "Deauth Cadet",
+        1_600: "Hash Harvester",
+        2_000: "Spectral Scrambler",
+        2_500: "Protocol Predator",
+        3_200: "Cipher Crusher",
+        4_500: "WiFi Marauder",
+        6_000: "Neural Nullifier",
+        8_000: "Signal Saboteur",
+        12_000: "Astral Sniffer",
+        18_000: "Quantum Brawler",
+        30_000: "Rootwave Ronin",
+        55_555: "Void Breaker",
+        111_111: "Omega Cipherlord"
     }
 
     def __init__(self):
