@@ -241,7 +241,7 @@ class Age(plugins.Plugin):
             progress = self.epochs / next_threshold
             bar_length = 5
             filled = int(progress * bar_length)
-            bar = '[' + '▥' * filled + ' ' * (bar_length - filled) + ']'
+            bar = '|' + '▥' * filled + ' ' * (bar_length - filled) + '|'
             ui.set('Progress', bar)
         else:
             ui.set('Progress', '[MAX]')
