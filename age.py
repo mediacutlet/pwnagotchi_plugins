@@ -221,7 +221,7 @@ class Age(plugins.Plugin):
             position=positions['points'], label_font=fonts.Bold, text_font=fonts.Medium))
 
         ui.add_element('Progress', LabeledValue(
-            color=BLACK, label='Next Age', value="[     ]",
+            color=BLACK, label='Next Age ', value="|     |",
             position=positions['progress'], label_font=fonts.Bold, text_font=fonts.Medium))
 
         if self.show_personality:
@@ -241,7 +241,7 @@ class Age(plugins.Plugin):
             progress = self.epochs / next_threshold
             bar_length = 5
             filled = int(progress * bar_length)
-            bar = '[' + '=' * filled + ' ' * (bar_length - filled) + ']'
+            bar = '[' + '▥' * filled + ' ' * (bar_length - filled) + ']'
             ui.set('Progress', bar)
         else:
             ui.set('Progress', '[MAX]')
