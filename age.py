@@ -1,13 +1,11 @@
 """
 Age Plugin (No Traveler)
 ========================
-Version: 3.3.0
+Version: 3.3.1
 Author: AlienMajik (tweaked by MediaCutlet/Strato)
 License: MIT
 
-This restores the Age plugin to a traveler‑free version. All Traveler/Nomadachi
-logic, storage, and UI have been removed so the Traveler system can live as a
-separate plugin.
+This makes the progress bar length configurable.
 
 Compatibility & Notes
 ---------------------
@@ -38,6 +36,8 @@ main.plugins.age.progress_x = 10
 main.plugins.age.progress_y = 80
 main.plugins.age.personality_x = 10
 main.plugins.age.personality_y = 100
+# New: Progress bar length (cells inside the bar, default 5, clamped 1–20)
+main.plugins.age.progress_bar_length = 5
 """
 
 import os
@@ -154,6 +154,8 @@ class Age(plugins.Plugin):
             "Keep evolving, don't let decay catch you!"
         ]
         self.show_personality = False  # default False to avoid clutter
+        # Progress bar (UI)
+        self.progress_bar_length = 5   # default number of cells inside the bar
 
         # Achievement tracking
         self.prev_age_title = "Unborn"
@@ -185,6 +187,13 @@ class Age(plugins.Plugin):
         self.points_map = self.options.get('points_map', self.points_map)
         self.motivational_quotes = self.options.get('motivational_quotes', self.motivational_quotes)
         self.show_personality = self.options.get('show_personality', self.show_personality)
+
+        # Progress bar length (clamped to avoid UI collisions)
+        try:
+            pbl = int(self.options.get('progress_bar_length', self.progress_bar_length))
+        except (TypeError, ValueError):
+            pbl = self.progress_bar_length
+        self.progress_bar_length = max(1, min(20, pbl))
 
         self.load_data()
         self.initialize_handshakes()
@@ -241,7 +250,7 @@ class Age(plugins.Plugin):
             position=positions['points'], label_font=fonts.Bold, text_font=fonts.Medium))
 
         ui.add_element('Progress', LabeledValue(
-            color=BLACK, label='Age', value="|     |",
+            color=BLACK, label='Age', value=self.render_progress_bar(0.0),
             position=positions['progress'], label_font=fonts.Bold, text_font=fonts.Medium))
 
         if self.show_personality:
@@ -259,10 +268,7 @@ class Age(plugins.Plugin):
         next_threshold = self.get_next_age_threshold()
         if next_threshold:
             progress = max(0.0, min(1.0, self.epochs / float(next_threshold)))
-            bar_length = 5
-            filled = int(progress * bar_length)
-            bar = '|' + '▥' * filled + ' ' * (bar_length - filled) + '|'
-            ui.set('Progress', bar)
+            ui.set('Progress', self.render_progress_bar(progress))
         else:
             ui.set('Progress', '[MAX]')
 
@@ -519,3 +525,15 @@ class Age(plugins.Plugin):
                     return f"{num}{unit}"
             num /= 1000.0
         return f"{num:.1f}T"  # trillions
+
+    def render_progress_bar(self, progress: float) -> str:
+        """
+        Build the Age progress bar using the configured length.
+        progress is 0.0–1.0.
+        """
+        length = int(self.progress_bar_length)
+        if length < 1:
+            length = 1
+        pct = max(0.0, min(1.0, float(progress)))
+        filled = int(pct * length)
+        return '|' + ('▥' * filled) + (' ' * (length - filled)) + '|'
