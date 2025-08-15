@@ -294,7 +294,7 @@ class Age(plugins.Plugin):
             tx = int(self.options.get('traveler_x', 10))
             ty = int(self.options.get('traveler_y', 118))
             ui.add_element('Traveler', LabeledValue(
-                color=BLACK, label='Trav', value="L0·0",
+                color=BLACK, label='Trav ', value="",
                 position=(tx, ty), label_font=fonts.Bold, text_font=fonts.Medium))
 
     def on_ui_update(self, ui):
@@ -320,7 +320,7 @@ class Age(plugins.Plugin):
         if self.enable_travel:
             ttitle = self.get_travel_title()
             places = len(self.place_hashes)
-            ui.set('Traveler', f"{ttitle} L{self.travel_level} · {places}pl")
+            ui.set('Traveler', f"{ttitle} ({places}pl)")
 
     def get_next_age_threshold(self):
         """Get the next age title threshold."""
