@@ -1,42 +1,43 @@
 """
-Age Plugin (Traveler-Enabled)
-==============================
-Version: 3.2.0-travel
-Author: AlienMajik + travel system by MediaCutlet (Strato)
+Age Plugin (No Traveler)
+========================
+Version: 3.3.0
+Author: AlienMajik (tweaked by MediaCutlet/Strato)
 License: MIT
 
-This is a drop‑in replacement for the Age plugin that adds a lightweight
-"Traveler" progression system focused on *novelty* and *variety* while keeping
-UI clutter minimal. Traveler XP is awarded for first-time encounters (new
-ESSIDs, BSSIDs, OUIs, channels, bands) and for discovering new "places"
-(GPS grid cells if available; otherwise a coarse Wi‑Fi fingerprint).
+This restores the Age plugin to a traveler‑free version. All Traveler/Nomadachi
+logic, storage, and UI have been removed so the Traveler system can live as a
+separate plugin.
 
-Config (add to /etc/pwnagotchi/config.toml):
--------------------------------------------
-# Enable the Traveler system (default true)
-main.plugins.age.enable_travel = true
+Compatibility & Notes
+---------------------
+• Existing /root/age_strength.json files from traveler builds are still readable;
+  any old Traveler keys will simply be ignored and dropped on the next save.
+• Remove any traveler-related options from /etc/pwnagotchi/config.toml, e.g.:
+    main.plugins.age.enable_travel
+    main.plugins.age.travel_grid
+    main.plugins.age.traveler_x
+    main.plugins.age.traveler_y
+• Optional UI toggles and positions for Age/Strength/Points/Progress/Personality
+  remain supported. Personality line is off by default to keep the UI clean.
 
-# Grid size for GPS quantization (degrees). 0.01 ~ 1.1 km. Smaller = denser places
-main.plugins.age.travel_grid = 0.01
-
-# UI positions (optional)
-main.plugins.age.traveler_x = 74
-main.plugins.age.traveler_y = 190
-
-# Show personality line (optional; default false to avoid clutter)
-main.plugins.age.show_personality = false
-
-# Optional: adjust decay behavior
+Config keys (examples)
+----------------------
+main.plugins.age.enabled = true
 main.plugins.age.decay_interval = 50
 main.plugins.age.decay_amount = 5
-
-Notes:
-- If a simple GPS JSON with {"lat": <float>, "lon": <float>} is available at one
-  of the candidate paths (see self.gps_candidate_paths), place discovery will
-  use a quantized grid. Otherwise, it falls back to a coarse Wi‑Fi fingerprint
-  (OUI+band+channel) so that travel progression can still advance across
-  materially different environments.
-- Traveler UI shows: "<title> L<level> · <places>pl"
+main.plugins.age.show_personality = false
+# Optional UI positions
+main.plugins.age.age_x = 10
+main.plugins.age.age_y = 40
+main.plugins.age.strength_x = 80
+main.plugins.age.strength_y = 40
+main.plugins.age.points_x = 10
+main.plugins.age.points_y = 60
+main.plugins.age.progress_x = 10
+main.plugins.age.progress_y = 80
+main.plugins.age.personality_x = 10
+main.plugins.age.personality_y = 100
 """
 
 import os
@@ -55,14 +56,13 @@ from pwnagotchi.ui.view import BLACK
 
 
 class Age(plugins.Plugin):
-    __author__ = 'AlienMajik'
-    __version__ = '3.2.0-travel'
+    __author__ = 'AlienMajik, MediaCutlet (Strato)'
+    __version__ = '3.3.0'
     __license__ = 'MIT'
     __description__ = (
-        'An enhanced plugin with frequent titles, dynamic quotes, progress bars, '
-        'random events, handshake streaks, personality evolution, secret achievements, '
-        'and a Traveler system that rewards novelty (new ESSIDs/BSSIDs/OUIs/channels/bands/places). '
-        'UI is optimized to avoid clutter.'
+        'Enhanced Age plugin with frequent titles, dynamic quotes, progress bars, '
+        'random events, handshake streaks, personality evolution, and secret achievements. '
+        'Traveler/Nomadachi logic has been removed to live in its own plugin.'
     )
 
     DEFAULT_AGE_TITLES = {
@@ -113,15 +113,6 @@ class Age(plugins.Plugin):
         30_000: "Rootwave Ronin",
         55_555: "Void Breaker",
         111_111: "Omega Cipherlord"
-    }
-
-    DEFAULT_TRAVEL_TITLES = {
-        0: "Homebody",
-        50: "Wanderling",
-        150: "City Stroller",
-        300: "Road Warrior",
-        600: "Jetsetter",
-        1200: "Globetrotter",
     }
 
     def __init__(self):
@@ -182,29 +173,6 @@ class Age(plugins.Plugin):
         # Thread safety for persistence
         self.data_lock = threading.Lock()
 
-        # --- Traveler system ---
-        self.enable_travel = True
-        self.travel_xp = 0
-        self.travel_level = 0
-        self.travel_titles = dict(self.DEFAULT_TRAVEL_TITLES)
-        self.unique_essids = set()
-        self.unique_bssids = set()
-        self.unique_ouis = set()
-        self.unique_channels = set()
-        self.unique_bands = set()
-        self.place_hashes = set()
-        self.last_place_hash = None
-
-        # Optional GPS integration: simple JSON {"lat": float, "lon": float}
-        self.gps_candidate_paths = [
-            "/tmp/pwnagotchi-gps.json",
-            "/tmp/gps.json",
-            "/root/.pwnagotchi-gps.json",
-            "/var/run/pwnagotchi/gps.json",
-        ]
-        # Grid size in degrees (0.01 ≈ 1.1 km)
-        self.travel_grid = 0.01
-
     # ------------------------------------------------------------------
     # Lifecycle
     # ------------------------------------------------------------------
@@ -217,14 +185,6 @@ class Age(plugins.Plugin):
         self.points_map = self.options.get('points_map', self.points_map)
         self.motivational_quotes = self.options.get('motivational_quotes', self.motivational_quotes)
         self.show_personality = self.options.get('show_personality', self.show_personality)
-
-        # Traveler-specific
-        self.enable_travel = self.options.get('enable_travel', self.enable_travel)
-        try:
-            self.travel_grid = float(self.options.get('travel_grid', self.travel_grid))
-        except Exception:
-            pass
-        self.travel_titles = self.options.get('travel_titles', self.travel_titles)
 
         self.load_data()
         self.initialize_handshakes()
@@ -289,14 +249,6 @@ class Age(plugins.Plugin):
                 color=BLACK, label='Trait ', value="Neutral",
                 position=positions['personality'], label_font=fonts.Bold, text_font=fonts.Medium))
 
-        # Traveler (compact single line)
-        if self.enable_travel:
-            tx = int(self.options.get('traveler_x', 10))
-            ty = int(self.options.get('traveler_y', 118))
-            ui.add_element('Traveler', LabeledValue(
-                color=BLACK, label='Trav ', value="",
-                position=(tx, ty), label_font=fonts.Bold, text_font=fonts.Medium))
-
     def on_ui_update(self, ui):
         """Update UI elements with current values."""
         ui.set('Age', self.get_age_title())
@@ -316,11 +268,6 @@ class Age(plugins.Plugin):
 
         if self.show_personality:
             ui.set('Personality', self.get_dominant_personality())
-
-        if self.enable_travel:
-            ttitle = self.get_travel_title()
-            places = len(self.place_hashes)
-            ui.set('Traveler', f"{ttitle} ({places}pl)")
 
     def get_next_age_threshold(self):
         """Get the next age title threshold."""
@@ -439,7 +386,7 @@ class Age(plugins.Plugin):
     # Handshakes
     # ------------------------------------------------------------------
     def on_handshake(self, agent, *args):
-        """Handle handshake events with streaks, achievements, and Traveler XP."""
+        """Handle handshake events with streaks and achievements."""
         try:
             if len(args) < 3:
                 logging.warning("[Age] Insufficient arguments in on_handshake")
@@ -453,9 +400,6 @@ class Age(plugins.Plugin):
             enc = (ap.get('encryption', '') or '').lower()
             essid = ap.get('essid', 'unknown')
             bssid = (ap.get('bssid') or '').lower()
-            channel = ap.get('channel', '0')
-            band = self.channel_to_band(channel)
-            oui = ':'.join(bssid.split(':')[:3]) if bssid and ':' in bssid else None
 
             # Base points
             points = self.points_map.get(enc, 1)
@@ -496,40 +440,6 @@ class Age(plugins.Plugin):
                 agent.view().set('status', "Achievement Unlocked: Crypto King!")
                 self.network_points += 100
 
-            # Traveler XP (novelty & places)
-            if self.enable_travel:
-                gained = 0
-                try:
-                    if essid not in self.unique_essids:
-                        self.unique_essids.add(essid)
-                        gained += 5
-                    if bssid and bssid not in self.unique_bssids:
-                        self.unique_bssids.add(bssid)
-                        gained += 2
-                    if oui and oui not in self.unique_ouis:
-                        self.unique_ouis.add(oui)
-                        gained += 3
-                    if channel and channel not in self.unique_channels:
-                        self.unique_channels.add(channel)
-                        gained += 1
-                    if band and band not in self.unique_bands:
-                        self.unique_bands.add(band)
-                        gained += 3
-                        agent.view().set('status', f"New band discovered: {band} GHz")
-
-                    place = self.compute_place_hash(ap)
-                    if place not in self.place_hashes:
-                        self.place_hashes.add(place)
-                        self.last_place_hash = place
-                        gained += 10
-                        agent.view().set('status', "New place discovered!")
-
-                    if gained > 0:
-                        self.add_travel_xp(gained)
-                        logging.info(f"[Age] Traveler XP +{gained} (xp={self.travel_xp}, lvl={self.travel_level})")
-                except Exception as e:
-                    logging.error(f"[Age] Traveler XP error: {e}")
-
             # Log handshake
             try:
                 with open(self.log_path, 'a') as f:
@@ -564,17 +474,6 @@ class Age(plugins.Plugin):
                     self.enc_types_captured = set(data.get('enc_types_captured', []))
                     for trait in ['aggro', 'stealth', 'scholar']:
                         self.personality_points[trait] = data.get(f'personality_{trait}', 0)
-
-                    # Traveler
-                    self.travel_xp = data.get('travel_xp', 0)
-                    self.travel_level = data.get('travel_level', 0)
-                    self.unique_essids = set(data.get('unique_essids', []))
-                    self.unique_bssids = set(data.get('unique_bssids', []))
-                    self.unique_ouis = set(data.get('unique_ouis', []))
-                    self.unique_channels = set(data.get('unique_channels', []))
-                    self.unique_bands = set(data.get('unique_bands', []))
-                    self.place_hashes = set(data.get('place_hashes', []))
-                    self.last_place_hash = data.get('last_place_hash', None)
         except Exception as e:
             logging.error(f"[Age] Load error: {str(e)}")
 
@@ -594,17 +493,6 @@ class Age(plugins.Plugin):
             'personality_aggro': self.personality_points['aggro'],
             'personality_stealth': self.personality_points['stealth'],
             'personality_scholar': self.personality_points['scholar'],
-
-            # Traveler
-            'travel_xp': self.travel_xp,
-            'travel_level': self.travel_level,
-            'unique_essids': list(self.unique_essids),
-            'unique_bssids': list(self.unique_bssids),
-            'unique_ouis': list(self.unique_ouis),
-            'unique_channels': list(self.unique_channels),
-            'unique_bands': list(self.unique_bands),
-            'place_hashes': list(self.place_hashes),
-            'last_place_hash': self.last_place_hash,
         }
         with self.data_lock:
             try:
@@ -612,95 +500,6 @@ class Age(plugins.Plugin):
                     json.dump(data, f, indent=2)
             except Exception as e:
                 logging.error(f"[Age] Save error: {str(e)}")
-
-    # ------------------------------------------------------------------
-    # Traveler helpers
-    # ------------------------------------------------------------------
-    def channel_to_band(self, channel):
-        try:
-            ch = int(channel)
-        except Exception:
-            return 'unk'
-        if 1 <= ch <= 14:
-            return '2.4'
-        # Common 5 GHz range (not exhaustive; adequate for gamification)
-        if (32 <= ch <= 173) or ch in (36, 40, 44, 48, 149, 153, 157, 161, 165):
-            return '5'
-        # Rough 6 GHz: some stacks map 6G channels starting ~191
-        if 1 <= ch - 191 <= 59:
-            return '6'
-        return 'unk'
-
-    def try_read_gps(self):
-        """Try to read a simple JSON with lat/lon from common paths. Return (lat, lon) or None."""
-        for p in self.gps_candidate_paths:
-            try:
-                if os.path.exists(p):
-                    with open(p, 'r') as f:
-                        j = json.load(f)
-                        lat = j.get('lat', None)
-                        lon = j.get('lon', None)
-                        if isinstance(lat, (int, float)) and isinstance(lon, (int, float)):
-                            return (lat, lon)
-            except Exception:
-                continue
-        return None
-
-    def quantize_ll(self, lat, lon):
-        g = self.travel_grid
-        # round to nearest grid point to avoid leaking precise location
-        qlat = round(lat / g) * g
-        qlon = round(lon / g) * g
-        return f"{qlat:.4f}:{qlon:.4f}"
-
-    def compute_place_hash(self, ap):
-        """
-        Prefer GPS (grid). Fallback: OUI + band + channel to create a coarse
-        fingerprint so travel can still advance without GPS.
-        """
-        gps = self.try_read_gps()
-        if gps is not None:
-            return self.quantize_ll(gps[0], gps[1])
-
-        bssid = (ap.get('bssid') or '').lower()
-        oui = ':'.join(bssid.split(':')[:3]) if bssid and ':' in bssid else 'no:ou:i'
-        ch = ap.get('channel', '0')
-        band = self.channel_to_band(ch)
-        return f"{oui}-{band}-{ch}"
-
-    def get_travel_title(self):
-        thresholds = sorted(self.travel_titles.keys(), reverse=True)
-        for t in thresholds:
-            if self.travel_xp >= t:
-                return self.travel_titles[t]
-        return self.travel_titles.get(0, "Homebody")
-
-    def next_travel_threshold(self):
-        thresholds = sorted(self.travel_titles.keys())
-        for t in thresholds:
-            if self.travel_xp < t:
-                return t
-        return None
-
-    def bump_travel_level(self):
-        lvl = 0
-        for t in sorted(self.travel_titles.keys()):
-            if self.travel_xp >= t:
-                lvl += 1
-        self.travel_level = max(0, lvl - 1)
-
-    def add_travel_xp(self, xp):
-        if xp <= 0:
-            return
-        self.travel_xp += int(xp)
-        old_level = self.travel_level
-        self.bump_travel_level()
-        if self.travel_level > old_level:
-            try:
-                ptitle = self.get_travel_title()
-                logging.info(f"[Age] Traveler level up: {ptitle} (L{self.travel_level})")
-            except Exception:
-                pass
 
     # ------------------------------------------------------------------
     # Misc helpers
