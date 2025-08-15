@@ -241,7 +241,7 @@ class Age(plugins.Plugin):
             position=positions['points'], label_font=fonts.Bold, text_font=fonts.Medium))
 
         ui.add_element('Progress', LabeledValue(
-            color=BLACK, label='Age ', value="|     |",
+            color=BLACK, label='Age', value="|     |",
             position=positions['progress'], label_font=fonts.Bold, text_font=fonts.Medium))
 
         if self.show_personality:
