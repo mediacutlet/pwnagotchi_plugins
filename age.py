@@ -95,8 +95,8 @@ class Age(plugins.Plugin):
     }
 
     DEFAULT_STRENGTH_TITLES = {
-        100: "Circuit Initiate",
-        250: "Pulse Drifter",
+        100: "Neophyte",
+        250: "Signal Scout",
         400: "Bitbreaker",
         600: "Packet Slinger",
         900: "Firewall Skipper",
@@ -107,10 +107,10 @@ class Age(plugins.Plugin):
         3_200: "Cipher Crusher",
         4_500: "WiFi Marauder",
         6_000: "Neural Nullifier",
-        8_000: "Signal Saboteur",
-        12_000: "Astral Sniffer",
+        8_000: "Signal Ninja",
+        12_000: "Astral Sniper",
         18_000: "Quantum Brawler",
-        30_000: "Rootwave Ronin",
+        30_000: "Rootwave Alpha",
         55_555: "Void Breaker",
         111_111: "Omega Cipherlord"
     }
