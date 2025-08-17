@@ -323,7 +323,7 @@ class Age(plugins.Plugin):
 
         if current_strength != self.prev_strength_title:
             agent.view().set('face', faces.MOTIVATED)
-            agent.view().set('status', f"💪 Evolved to {current_strength}!")
+            agent.view().set('status', f"✦Evolved to {current_strength}!")
             logging.info(f"[Age] New strength title: {current_strength}")
             self.prev_strength_title = current_strength
 
