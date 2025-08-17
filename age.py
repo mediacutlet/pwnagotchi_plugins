@@ -67,9 +67,9 @@ class Age(plugins.Plugin):
 
     DEFAULT_AGE_TITLES = {
       100:     "Cosmic Hatchling",
-      200:     "Fledgling",
-      275:     "Pingling",
-      350:     "Bootsprout",
+      200:     "Pingling",
+      275:     "Bootsprout",
+      350:     "Fledgling",
       450:     "Bitling",
       600:     "Beacon Scout",
       750:     "Orbitling",
@@ -96,22 +96,21 @@ class Age(plugins.Plugin):
 
     DEFAULT_STRENGTH_TITLES = {
         100: "Neophyte",
-        200: "Cyber Trainee", 
-        400: "Signal Scout",
-        600: "Bitbreaker",
-        800: "Packet Slinger",
-        1000: "Firewall Skipper",
+        250: "Signal Scout",
+        400: "Bitbreaker",
+        600: "Packet Slinger",
+        900: "Firewall Skipper",
         1_200: "Deauth Cadet",
         1_600: "Hash Harvester",
         2_000: "Spectral Scrambler",
         2_500: "Protocol Predator",
         3_200: "Cipher Crusher",
         4_500: "WiFi Marauder",
-        6_000: "Neural Reaper",
-        8_000: "Astral Sniper",
-        12_000: "Signal Master",
+        6_000: "Neural Nullifier",
+        8_000: "Signal Ninja",
+        12_000: "Astral Sniper",
         18_000: "Quantum Brawler",
-        30_000: "Rootwave Titan",
+        30_000: "Rootwave Alpha",
         55_555: "Void Breaker",
         111_111: "Omega Cipherlord"
     }
