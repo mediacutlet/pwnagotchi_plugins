@@ -96,7 +96,7 @@ class Age(plugins.Plugin):
 
     DEFAULT_STRENGTH_TITLES = {
         100: "Neophyte",
-        200: "Telemetry Trainee", 
+        200: "Cyber Trainee", 
         400: "Signal Scout",
         600: "Bitbreaker",
         800: "Packet Slinger",
