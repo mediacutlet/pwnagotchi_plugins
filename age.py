@@ -317,7 +317,7 @@ class Age(plugins.Plugin):
 
         if current_age != self.prev_age_title:
             agent.view().set('face', faces.HAPPY)
-            agent.view().set('status', f"🎉 {current_age} Achieved! {self.random_motivational_quote()}")
+            agent.view().set('status', f"✹{current_age} Achieved! {self.random_motivational_quote()}")
             logging.info(f"[Age] New age title: {current_age}")
             self.prev_age_title = current_age
 
